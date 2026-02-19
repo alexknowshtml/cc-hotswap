@@ -49,6 +49,9 @@ cc-hotswap
 # Switch to another account
 cc-hotswap personal-account
 
+# Check real usage for all accounts
+cc-hotswap usage
+
 # See account details
 cc-hotswap status
 
@@ -65,27 +68,73 @@ Accounts:
     personal-account
 ```
 
+### Usage checking
+
+Check real usage percentages from Anthropic's API — the same numbers shown in claude.ai/settings:
+
+```bash
+# One-time: save a session cookie from your browser
+# (DevTools → Application → Cookies → sessionKey)
+cc-hotswap set-cookie work-account sk-ant-sid02-...
+
+# Check usage across all accounts
+cc-hotswap usage
+```
+
+Output:
+
+```
+Account Usage
+
+work-account (active)
+  Weekly:  ████████████████░░░░  82%
+  Session: ██░░░░░░░░░░░░░░░░░░   9%
+  Sonnet:  ███░░░░░░░░░░░░░░░░░  18%
+  Resets in: 2d 3h
+
+personal-account
+  Weekly:  █░░░░░░░░░░░░░░░░░░░   0%
+  Session: █░░░░░░░░░░░░░░░░░░░   0%
+  Sonnet:  █░░░░░░░░░░░░░░░░░░░   0%
+  Resets in: 6d 3h
+```
+
+Session cookies expire after ~10-30 minutes. For persistent usage checking, automate cookie refresh with a headless browser (Playwright/Puppeteer) — see [Cookie Refresh](#cookie-refresh) below.
+
 ## How it works
 
 Claude Code on Linux stores OAuth credentials in `~/.claude/.credentials.json`. This tool saves named snapshots of that file and copies them back when you want to switch.
 
-That's it. One shell script, no dependencies.
+Usage checking works by hitting `claude.ai/api/organizations/{orgId}/usage` with browser-like headers and a session cookie. The `set-cookie` command auto-discovers your org UUID.
 
 ### Limitations
 
 - **Swap before starting a session.** Claude Code reads credentials at startup. Swapping mid-session won't take effect until you start a new one.
-- **No usage tracking.** Anthropic doesn't expose Max plan usage programmatically ([#19385](https://github.com/anthropics/claude-code/issues/19385), [#24459](https://github.com/anthropics/claude-code/issues/24459)). The only way to check your actual weekly usage % is at [claude.ai/settings](https://claude.ai/settings) → Usage.
+- **Session cookies expire quickly.** The `usage` command needs a valid session cookie from claude.ai. These expire after ~10-30 minutes. You'll need to refresh them from your browser or automate it.
 - **Linux only.** On macOS, Claude Code stores credentials in the system Keychain, not a flat file. This tool won't work there without modification.
 
 ## When to swap
 
-You'll know it's time to swap when Claude Code starts showing usage warnings or throttling your requests. Check your usage at [claude.ai/settings](https://claude.ai/settings) → Usage to see your current % and reset time.
+Run `cc-hotswap usage` to see your current utilization across accounts. Swap when your primary account gets high.
+
+You'll also know it's time when Claude Code starts showing usage warnings or throttling your requests.
 
 Some context on Max plan tiers:
 - **Max 5x** ($100/mo): Auto-switches Opus → Sonnet at 20% weekly usage
 - **Max 20x** ($200/mo): Auto-switches Opus → Sonnet at 50% weekly usage
 
 A common pattern: start each cycle on your bigger plan, and switch to the backup when it runs low.
+
+## Cookie Refresh
+
+Session cookies expire quickly, so manual cookie entry gets tedious. You can automate this with a headless browser:
+
+1. Install [Playwright](https://playwright.dev/) on a machine that stays on
+2. Write a script that loads claude.ai, extracts the `sessionKey` cookie, and saves it
+3. Run it on a cron every 15-20 minutes
+4. Point your `set-cookie` or file sync at the output
+
+A Playwright-based refresh script is on the roadmap. Contributions welcome.
 
 ## Claude Code Skill
 
@@ -106,9 +155,11 @@ Then invoke it in Claude Code with `/cc-hotswap`.
   .current                    # Name of active account
   creds-work-account.json     # Saved credentials
   creds-personal-account.json
+  session-work-account.key    # Session cookie (for usage checking)
+  org-work-account.uuid       # Org UUID (auto-discovered)
 ```
 
-Credential files are stored with `600` permissions (owner read/write only). Override the storage directory with `CLAUDE_SWAP_DIR`.
+Credential and session files are stored with `600` permissions (owner read/write only). Override the storage directory with `CLAUDE_SWAP_DIR`.
 
 ## License
 
