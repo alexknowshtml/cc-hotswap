@@ -1,14 +1,14 @@
 # cc-hotswap
 
-Manually swap between multiple [Claude Code](https://claude.ai/code) Max plan accounts from the command line.
+Easily swap between multiple [Claude Code](https://claude.ai/code) Max plan accounts from the command line.
 
-When you hit your weekly usage limit, run one command to switch to another account and keep working.
+When you hit your weekly usage limit, one command switches to another account so you can keep working.
 
 ## Why?
 
-Claude Code Max plans have weekly usage limits that reset on a rolling 7-day cycle. Heavy users (especially on Opus) can hit these limits days early. If you have multiple accounts, this tool makes it easy to manually switch between them.
+Claude Code Max plans have weekly usage limits that reset on a rolling 7-day cycle. Heavy users (especially on Opus) can hit these limits days early. If you have multiple accounts, this tool makes swapping between them trivial — one command instead of a logout/login dance.
 
-There's no automatic detection or swapping. You decide when to switch. This just manages the credentials so swapping is one command instead of a logout/login dance.
+It also ships as a [Claude Code skill](#claude-code-skill), so you can ask Claude to swap accounts for you without leaving your session.
 
 ## Install
 
@@ -69,7 +69,7 @@ Accounts:
 
 Claude Code on Linux stores OAuth credentials in `~/.claude/.credentials.json`. This tool saves named snapshots of that file and copies them back when you want to switch.
 
-That's it. No daemon, no monitoring, no automatic switching. One shell script, no dependencies.
+That's it. One shell script, no dependencies.
 
 ### Limitations
 
