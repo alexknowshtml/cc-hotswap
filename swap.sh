@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# claude-code-swap: Rotate between Claude Code Max plan accounts
-# https://github.com/alexknowshtml/claude-code-swap
+# cc-hotswap: Hotswap between Claude Code Max plan accounts
+# https://github.com/alexknowshtml/cc-hotswap
 #
 # Usage:
 #   swap.sh                  Show current account and list all
@@ -45,7 +45,7 @@ list_accounts() {
     fi
   done
   if [ "$found" -eq 0 ]; then
-    echo -e "  ${DIM}No accounts saved. Run: swap.sh add <name>${NC}"
+    echo -e "  ${DIM}No accounts saved. Run: cc-hotswap add <name>${NC}"
   fi
 }
 
@@ -139,21 +139,21 @@ cmd_status() {
 
 cmd_help() {
   cat <<'EOF'
-claude-code-swap: Rotate between Claude Code accounts
+cc-hotswap: Hotswap between Claude Code accounts
 
 Usage:
-  swap.sh                  Show current account and list all
-  swap.sh <name>           Switch to named account
-  swap.sh add <name>       Save current login as a named account
-  swap.sh remove <name>    Remove a saved account
-  swap.sh status           Show current account with auth details
-  swap.sh help             Show this help
+  cc-hotswap                  Show current account and list all
+  cc-hotswap <name>           Switch to named account
+  cc-hotswap add <name>       Save current login as a named account
+  cc-hotswap remove <name>    Remove a saved account
+  cc-hotswap status           Show current account with auth details
+  cc-hotswap help             Show this help
 
 Setup:
   1. Log in:    claude auth login
-  2. Save it:   swap.sh add my-account
+  2. Save it:   cc-hotswap add my-account
   3. Repeat for each account
-  4. Swap:      swap.sh my-account
+  4. Swap:      cc-hotswap my-account
 
 Notes:
   - Swap BEFORE starting a Claude Code session (tokens load at startup)
@@ -170,10 +170,10 @@ mkdir -p "$ACCT_DIR"
 case "${1:-}" in
   ""|list)    cmd_list ;;
   add)
-    [ -z "${2:-}" ] && { echo -e "${RED}Usage:${NC} swap.sh add <name>"; exit 1; }
+    [ -z "${2:-}" ] && { echo -e "${RED}Usage:${NC} cc-hotswap add <name>"; exit 1; }
     cmd_add "$2" ;;
   remove|rm)
-    [ -z "${2:-}" ] && { echo -e "${RED}Usage:${NC} swap.sh remove <name>"; exit 1; }
+    [ -z "${2:-}" ] && { echo -e "${RED}Usage:${NC} cc-hotswap remove <name>"; exit 1; }
     cmd_remove "$2" ;;
   status)     cmd_status ;;
   help|--help|-h)  cmd_help ;;

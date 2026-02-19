@@ -1,23 +1,23 @@
-# claude-code-swap
+# cc-hotswap
 
-Rotate between multiple [Claude Code](https://claude.ai/code) Max plan accounts from the command line.
+Hotswap between multiple [Claude Code](https://claude.ai/code) Max plan accounts from the command line.
 
-If you burn through your weekly usage limit before it resets, swap to another account and keep working.
+If you burn through your weekly usage limit before it resets, hotswap to another account and keep working.
 
 ## Why?
 
-Claude Code Max plans have weekly usage limits that reset every Saturday at 10:00 AM. Heavy users (especially on Opus) can hit these limits days early. If you have multiple accounts, this tool lets you swap between them with one command.
+Claude Code Max plans have weekly usage limits that reset every Saturday at 10:00 AM. Heavy users (especially on Opus) can hit these limits days early. If you have multiple accounts, this tool lets you hotswap between them with one command.
 
 ## Install
 
 ```bash
 # Clone the repo
-git clone https://github.com/alexknowshtml/claude-code-swap.git
+git clone https://github.com/alexknowshtml/cc-hotswap.git
 
 # Add to your PATH (pick one)
-ln -s "$(pwd)/claude-code-swap/swap.sh" ~/.local/bin/cc-swap
+ln -s "$(pwd)/cc-hotswap/swap.sh" ~/.local/bin/cc-hotswap
 # or
-alias cc-swap='/path/to/claude-code-swap/swap.sh'
+alias cc-hotswap='/path/to/cc-hotswap/swap.sh'
 ```
 
 ## Setup
@@ -27,31 +27,31 @@ Save each account you want to rotate between:
 ```bash
 # Log into your first account
 claude auth login
-cc-swap add work-account
+cc-hotswap add work-account
 
 # Log into your second account
 claude auth logout
 claude auth login
-cc-swap add personal-account
+cc-hotswap add personal-account
 
 # Switch back to your primary
-cc-swap work-account
+cc-hotswap work-account
 ```
 
 ## Usage
 
 ```bash
 # See which account is active
-cc-swap
+cc-hotswap
 
-# Switch accounts
-cc-swap personal-account
+# Hotswap to another account
+cc-hotswap personal-account
 
 # See account details
-cc-swap status
+cc-hotswap status
 
 # List all commands
-cc-swap help
+cc-hotswap help
 ```
 
 Output:
@@ -81,7 +81,7 @@ Max plans have two tiers:
 - **Max 5x** ($100/mo): Auto-switches Opus → Sonnet at 20% weekly usage
 - **Max 20x** ($200/mo): Auto-switches Opus → Sonnet at 50% weekly usage
 
-Start each week on your bigger plan. When you feel throttling or see usage warnings, swap to the backup. Saturday at 10 AM, swap back.
+Start each week on your bigger plan. When you feel throttling or see usage warnings, hotswap to the backup. Saturday at 10 AM, swap back.
 
 ## File layout
 
