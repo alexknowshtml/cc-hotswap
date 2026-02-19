@@ -159,7 +159,7 @@ Notes:
   - Swap BEFORE starting a Claude Code session (tokens load at startup)
   - Credentials stored in ~/.claude/accounts/ with 600 permissions
   - Override storage dir with CLAUDE_SWAP_DIR env var
-  - Weekly limits reset Saturday 10:00 AM (check claude.ai/settings)
+  - Weekly limits reset on a rolling 7-day cycle (check claude.ai/settings for your reset time)
 EOF
 }
 

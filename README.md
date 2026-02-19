@@ -6,7 +6,7 @@ If you burn through your weekly usage limit before it resets, hotswap to another
 
 ## Why?
 
-Claude Code Max plans have weekly usage limits that reset every Saturday at 10:00 AM. Heavy users (especially on Opus) can hit these limits days early. If you have multiple accounts, this tool lets you hotswap between them with one command.
+Claude Code Max plans have weekly usage limits that reset on a rolling 7-day cycle. Heavy users (especially on Opus) can hit these limits days early. If you have multiple accounts, this tool lets you hotswap between them with one command.
 
 ## Install
 
@@ -81,7 +81,7 @@ Max plans have two tiers:
 - **Max 5x** ($100/mo): Auto-switches Opus → Sonnet at 20% weekly usage
 - **Max 20x** ($200/mo): Auto-switches Opus → Sonnet at 50% weekly usage
 
-Start each week on your bigger plan. When you feel throttling or see usage warnings, hotswap to the backup. Saturday at 10 AM, swap back.
+Start each cycle on your bigger plan. When you feel throttling or see usage warnings, hotswap to the backup. When your weekly limit resets (check [claude.ai/settings](https://claude.ai/settings) → Usage for your reset time), swap back.
 
 ## Claude Code Skill
 
