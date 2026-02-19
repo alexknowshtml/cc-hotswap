@@ -83,6 +83,18 @@ Max plans have two tiers:
 
 Start each week on your bigger plan. When you feel throttling or see usage warnings, hotswap to the backup. Saturday at 10 AM, swap back.
 
+## Claude Code Skill
+
+cc-hotswap includes a `SKILL.md` file that works as a [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills). When loaded, it gives Claude Code the context to run swap commands on your behalf.
+
+To use it, add the repo to your project's `.claude/skills/` directory or symlink it:
+
+```bash
+ln -s /path/to/cc-hotswap ~/.claude/skills/cc-hotswap
+```
+
+Then invoke it in Claude Code with `/cc-hotswap`.
+
 ## File layout
 
 ```
