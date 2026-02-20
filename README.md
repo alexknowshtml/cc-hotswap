@@ -127,46 +127,90 @@ A common pattern: start each cycle on your bigger plan, and switch to the backup
 
 ## Cookie Refresh
 
-Session cookies expire every ~10-30 minutes, so manual entry gets tedious fast. The solution: a persistent headless Playwright daemon that keeps sessions alive automatically.
+Session cookies expire every ~10-30 minutes, so manual entry gets tedious fast. This repo includes two scripts that automate cookie refresh using Playwright:
+
+- **`cookie-daemon.cjs`** — Persistent daemon that keeps one Chromium instance running and refreshes all accounts every 10 minutes
+- **`refresh-cookies.cjs`** — One-shot tool for initializing accounts (`--init`) and manual refresh
 
 ### How it works
 
-A Node.js daemon runs on an always-on machine (e.g. a Mac Mini). It:
+The daemon launches a single headless Chromium instance with [playwright-extra](https://github.com/nickreese/playwright-extra) and [stealth](https://github.com/nickreese/puppeteer-extra-plugin-stealth) to avoid bot detection. It creates a separate browser context per account, each with its own session state. Every 10 minutes it navigates each context to claude.ai, extracts the refreshed `sessionKey` cookie, and verifies it against the API.
 
-1. Launches a single headless Chromium instance with [playwright-extra](https://github.com/nickreese/playwright-extra) and [stealth](https://github.com/nickreese/puppeteer-extra-plugin-stealth) to avoid bot detection
-2. Creates a separate browser context per account, each with its own session state
-3. Every 10 minutes, navigates each context to `claude.ai/settings`, extracts the refreshed `sessionKey` cookie, and verifies it against the API
-4. Saves cookies to `session-{name}.key` files that `swap.sh usage` can pull over SSH
-
-This is much lighter than launching and killing a browser every 10 minutes. One Chromium process stays warm, and launchd restarts it if it crashes.
+One Chromium process stays warm — much lighter than launching and killing a browser on every refresh cycle.
 
 ### Setup
 
-**Prerequisites:** Node.js, Playwright, and a machine that stays on.
-
 ```bash
-# On the always-on machine
-mkdir ~/cc-hotswap-cookies
-npm install playwright-extra puppeteer-extra-plugin-stealth
+# Install dependencies in the daemon directory
+mkdir -p ~/.claude/accounts/cc-hotswap-cookies
+cd ~/.claude/accounts/cc-hotswap-cookies
+npm init -y
+npm install playwright playwright-extra puppeteer-extra-plugin-stealth
+
+# Copy the scripts
+cp /path/to/cc-hotswap/cookie-daemon.cjs .
+cp /path/to/cc-hotswap/refresh-cookies.cjs .
+
+# Install Playwright browsers (if not already installed)
+npx playwright install chromium
 
 # Initialize each account (opens a visible browser for manual login)
-node cookie-daemon.cjs --init work-account
+node refresh-cookies.cjs --init work-account
 # Log in, script auto-detects completion and saves state
 
-node cookie-daemon.cjs --init personal-account
+node refresh-cookies.cjs --init personal-account
 ```
 
-**Run as a daemon:**
+### Running the daemon
 
-On macOS, create a launchd plist with `KeepAlive: true`. On Linux, use a systemd unit or pm2.
+**Linux (systemd):**
 
-**Pull cookies remotely:**
+```ini
+# ~/.config/systemd/user/cc-hotswap-cookies.service
+[Unit]
+Description=cc-hotswap cookie refresh daemon
+After=network-online.target
 
-`swap.sh usage` can auto-pull fresh cookies from your daemon machine via SSH before checking usage. Set `MAC_MINI_IP` and `MAC_MINI_COOKIE_DIR` in the script to enable this.
+[Service]
+Type=simple
+WorkingDirectory=%h/.claude/accounts/cc-hotswap-cookies
+ExecStart=/usr/bin/node cookie-daemon.cjs
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=default.target
+```
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now cc-hotswap-cookies.service
+```
+
+**macOS (launchd):** Create a plist in `~/Library/LaunchAgents/` with `KeepAlive: true`.
+
+**Any platform:** `pm2 start cookie-daemon.cjs --name cc-hotswap`
+
+### One-shot refresh
+
+If you don't want to run a persistent daemon, use the one-shot refresh:
+
+```bash
+cc-hotswap refresh
+```
+
+This launches Chromium, refreshes all sessions, and exits. You can cron this every 15-20 minutes, though the daemon approach is lighter.
 
 ### Re-initializing expired sessions
 
-If the daemon reports a session expired (e.g. after a machine reboot or long downtime), re-run `--init` for that account. The browser opens, you log in once, and the daemon takes over again.
+If the daemon logs "Session expired — needs re-init" (e.g. after a long downtime), re-run init for that account:
+
+```bash
+cd ~/.claude/accounts/cc-hotswap-cookies
+node refresh-cookies.cjs --init work-account
+```
+
+A browser window opens. Log in, and the script auto-detects completion and saves the state. No Ctrl+C needed.
 
 ## Claude Code Skill
 

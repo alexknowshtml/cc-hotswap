@@ -25,11 +25,17 @@ Hotswap between multiple Claude Code Max plan accounts to extend weekly usage li
 ```
 Shows weekly, session, and Sonnet usage percentages with visual bars. Requires valid session cookies.
 
+### Run one-shot cookie refresh
+```bash
+~/.claude/accounts/swap.sh refresh
+```
+Runs the Playwright refresh script to grab fresh session cookies. The persistent daemon handles this automatically, so `refresh` is only needed for manual one-off refreshes.
+
 ### Save a session cookie for usage checking
 ```bash
 ~/.claude/accounts/swap.sh set-cookie <account-name> <session-key>
 ```
-Get the session key from browser DevTools (claude.ai → Application → Cookies → sessionKey). Auto-discovers the org UUID.
+Manual fallback — paste a session key from browser DevTools. Not normally needed when the daemon is running.
 
 ### Add a new account (saves current login)
 ```bash
@@ -52,7 +58,7 @@ Get the session key from browser DevTools (claude.ai → Application → Cookies
 
 - **Swap before launching a session**, not during one. Tokens are read at startup.
 - The `usage` command shows real Anthropic data (same as claude.ai/settings)
-- Session cookies expire after ~10-30 minutes — refresh from browser or automate with Playwright
+- Session cookies expire after ~10-30 minutes — the cookie daemon handles this automatically
 - Max 20x auto-switches Opus → Sonnet at 50% weekly usage. Max 5x at 20%.
 - **Linux only.** On macOS, Claude Code stores credentials in the system Keychain, not a flat file.
 

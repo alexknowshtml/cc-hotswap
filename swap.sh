@@ -10,6 +10,7 @@
 #   swap.sh remove <name>          Remove a saved account
 #   swap.sh status                 Show current account details
 #   swap.sh usage                  Check real usage for all accounts
+#   swap.sh refresh                Run one-shot cookie refresh via Playwright
 #   swap.sh set-cookie <name> <key>  Save session cookie for usage checking
 #   swap.sh discover-org <name>    Auto-discover org UUID from session cookie
 
@@ -18,6 +19,7 @@ set -euo pipefail
 ACCT_DIR="${CLAUDE_SWAP_DIR:-$HOME/.claude/accounts}"
 CREDS="$HOME/.claude/.credentials.json"
 CURRENT_FILE="$ACCT_DIR/.current"
+DAEMON_DIR="$ACCT_DIR/cc-hotswap-cookies"
 
 # Colors (disable with NO_COLOR=1)
 if [ -z "${NO_COLOR:-}" ] && [ -t 1 ]; then
@@ -249,6 +251,16 @@ cmd_status() {
   list_accounts
 }
 
+cmd_refresh() {
+  echo -e "${DIM}Running one-shot cookie refresh...${NC}"
+  if [ ! -f "$DAEMON_DIR/refresh-cookies.cjs" ]; then
+    echo -e "${RED}Refresh script not found at $DAEMON_DIR/refresh-cookies.cjs${NC}"
+    echo -e "${DIM}Install: cp refresh-cookies.cjs $DAEMON_DIR/${NC}"
+    return 1
+  fi
+  (cd "$DAEMON_DIR" && node refresh-cookies.cjs) 2>&1
+}
+
 cmd_usage() {
   echo -e "${BOLD}Account Usage${NC}"
   echo ""
@@ -335,6 +347,7 @@ Usage:
   cc-hotswap remove <name>          Remove a saved account
   cc-hotswap status                 Show current account with auth details
   cc-hotswap usage                  Check real usage for all accounts
+  cc-hotswap refresh                Run one-shot cookie refresh via Playwright
   cc-hotswap set-cookie <name> <key>  Save session cookie for usage checking
   cc-hotswap discover-org <name>    Auto-discover org UUID from session cookie
   cc-hotswap help                   Show this help
@@ -374,6 +387,7 @@ case "${1:-}" in
     cmd_remove "$2" ;;
   status)     cmd_status ;;
   usage)      cmd_usage ;;
+  refresh)    cmd_refresh ;;
   set-cookie)
     [ -z "${2:-}" ] && { echo -e "${RED}Usage:${NC} cc-hotswap set-cookie <name> <session-key>"; exit 1; }
     [ -z "${3:-}" ] && { echo -e "${RED}Usage:${NC} cc-hotswap set-cookie <name> <session-key>"; exit 1; }
