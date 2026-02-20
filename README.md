@@ -127,14 +127,46 @@ A common pattern: start each cycle on your bigger plan, and switch to the backup
 
 ## Cookie Refresh
 
-Session cookies expire quickly, so manual cookie entry gets tedious. You can automate this with a headless browser:
+Session cookies expire every ~10-30 minutes, so manual entry gets tedious fast. The solution: a persistent headless Playwright daemon that keeps sessions alive automatically.
 
-1. Install [Playwright](https://playwright.dev/) on a machine that stays on
-2. Write a script that loads claude.ai, extracts the `sessionKey` cookie, and saves it
-3. Run it on a cron every 15-20 minutes
-4. Point your `set-cookie` or file sync at the output
+### How it works
 
-A Playwright-based refresh script is on the roadmap. Contributions welcome.
+A Node.js daemon runs on an always-on machine (e.g. a Mac Mini). It:
+
+1. Launches a single headless Chromium instance with [playwright-extra](https://github.com/nickreese/playwright-extra) and [stealth](https://github.com/nickreese/puppeteer-extra-plugin-stealth) to avoid bot detection
+2. Creates a separate browser context per account, each with its own session state
+3. Every 10 minutes, navigates each context to `claude.ai/settings`, extracts the refreshed `sessionKey` cookie, and verifies it against the API
+4. Saves cookies to `session-{name}.key` files that `swap.sh usage` can pull over SSH
+
+This is much lighter than launching and killing a browser every 10 minutes. One Chromium process stays warm, and launchd restarts it if it crashes.
+
+### Setup
+
+**Prerequisites:** Node.js, Playwright, and a machine that stays on.
+
+```bash
+# On the always-on machine
+mkdir ~/cc-hotswap-cookies
+npm install playwright-extra puppeteer-extra-plugin-stealth
+
+# Initialize each account (opens a visible browser for manual login)
+node cookie-daemon.cjs --init work-account
+# Log in, script auto-detects completion and saves state
+
+node cookie-daemon.cjs --init personal-account
+```
+
+**Run as a daemon:**
+
+On macOS, create a launchd plist with `KeepAlive: true`. On Linux, use a systemd unit or pm2.
+
+**Pull cookies remotely:**
+
+`swap.sh usage` can auto-pull fresh cookies from your daemon machine via SSH before checking usage. Set `MAC_MINI_IP` and `MAC_MINI_COOKIE_DIR` in the script to enable this.
+
+### Re-initializing expired sessions
+
+If the daemon reports a session expired (e.g. after a machine reboot or long downtime), re-run `--init` for that account. The browser opens, you log in once, and the daemon takes over again.
 
 ## Claude Code Skill
 
