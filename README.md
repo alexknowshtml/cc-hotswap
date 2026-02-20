@@ -117,11 +117,7 @@ Usage checking works by hitting `claude.ai/api/organizations/{orgId}/usage` with
 
 Run `cc-hotswap usage` to see your current utilization across accounts. Swap when your primary account gets high.
 
-You'll also know it's time when Claude Code starts showing usage warnings or throttling your requests.
-
-Some context on Max plan tiers:
-- **Max 5x** ($100/mo): Auto-switches Opus → Sonnet at 20% weekly usage
-- **Max 20x** ($200/mo): Auto-switches Opus → Sonnet at 50% weekly usage
+You'll also know it's time when Claude Code starts showing usage warnings or throttling your requests. On Max plans, Opus gets capped at some fraction of your weekly limit and auto-falls back to Sonnet — swap before that happens.
 
 A common pattern: start each cycle on your bigger plan, and switch to the backup when it runs low.
 
