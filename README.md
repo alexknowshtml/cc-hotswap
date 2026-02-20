@@ -113,14 +113,6 @@ Usage checking works by hitting `claude.ai/api/organizations/{orgId}/usage` with
 - **Session cookies expire quickly.** The `usage` command needs a valid session cookie from claude.ai. These expire after ~10-30 minutes. You'll need to refresh them from your browser or automate it.
 - **Linux only.** On macOS, Claude Code stores credentials in the system Keychain, not a flat file. This tool won't work there without modification.
 
-## When to swap
-
-Run `cc-hotswap usage` to see your current utilization across accounts. Swap when your primary account gets high.
-
-You'll also know it's time when Claude Code starts showing usage warnings or throttling your requests. On Max plans, Opus gets capped at some fraction of your weekly limit and auto-falls back to Sonnet — swap before that happens.
-
-A common pattern: start each cycle on your bigger plan, and switch to the backup when it runs low.
-
 ## Cookie Refresh
 
 Session cookies expire every ~10-30 minutes, so manual entry gets tedious fast. This repo includes two scripts that automate cookie refresh using Playwright:
