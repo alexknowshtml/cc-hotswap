@@ -1,0 +1,29 @@
+{
+  "name": "cc-hotswap",
+  "version": "2.0.0",
+  "description": "Hotswap between Claude Code accounts using CLAUDE_CONFIG_DIR isolation",
+  "type": "module",
+  "bin": {
+    "cc-hotswap": "./src/cc-hotswap.ts"
+  },
+  "scripts": {
+    "start": "bun run src/cc-hotswap.ts",
+    "build": "bun build src/cc-hotswap.ts --compile --outfile cc-hotswap",
+    "check": "bun run --bun tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/bun": "^1.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "account-switcher"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexknowshtml/cc-hotswap"
+  }
+}

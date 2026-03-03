@@ -1,3 +1,7 @@
 # Don't commit actual credentials
 creds-*.json
 .current
+
+# Dependencies
+node_modules/
+bun.lock
