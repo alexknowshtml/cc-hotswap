@@ -6,7 +6,7 @@
  * https://github.com/alexknowshtml/cc-hotswap
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, chmodSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, chmodSync, symlinkSync, lstatSync } from "fs";
 import { join, basename } from "path";
 import { spawnSync } from "child_process";
 
@@ -74,6 +74,54 @@ interface Credentials {
 function ensureDirs(): void {
   for (const dir of [ACCT_DIR, INSTANCES_DIR, SESSION_COOKIES_DIR, ORG_UUIDS_DIR]) {
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  }
+}
+
+// Items in ~/.claude/ that should be shared across all accounts via symlinks.
+// Only .credentials.json and .claude.json remain per-account.
+const SHARED_ITEMS = [
+  "settings.json", "CLAUDE.md", "hooks", "commands", "data", "config",
+  "projects", "file-history", "history.jsonl", "ide", "mcp-needs-auth-cache.json",
+  "paste-cache", "plans", "plugins", "session-env", "agents", "project-config.json",
+];
+
+/**
+ * Create symlinks in an instance directory pointing back to shared ~/.claude/ items.
+ * Skips items that already exist (symlink or real file) in the instance dir.
+ */
+function setupInstanceSymlinks(instDir: string): void {
+  const claudeDir = join(HOME, ".claude");
+  let linked = 0;
+
+  for (const item of SHARED_ITEMS) {
+    const target = join(claudeDir, item);
+    const link = join(instDir, item);
+
+    // Skip if source doesn't exist in ~/.claude/
+    if (!existsSync(target)) continue;
+
+    // Skip if already exists in instance dir (don't overwrite)
+    if (existsSync(link)) {
+      // But if it's not a symlink, warn about it
+      try {
+        const stat = lstatSync(link);
+        if (!stat.isSymbolicLink()) {
+          console.log(c.dim(`  ${item}: exists (not a symlink, skipping)`));
+        }
+      } catch { /* ignore */ }
+      continue;
+    }
+
+    try {
+      symlinkSync(target, link);
+      linked++;
+    } catch (err: any) {
+      console.log(c.yellow(`  Warning: could not symlink ${item}: ${err.message}`));
+    }
+  }
+
+  if (linked > 0) {
+    console.log(c.dim(`  Linked ${linked} shared config items from ~/.claude/`));
   }
 }
 
@@ -472,6 +520,7 @@ function cmdAdd(name: string): void {
   mkdirSync(instDir, { recursive: true });
   copyFileSync(DEFAULT_CREDS_FILE, credentialsPath(name));
   chmodSync(credentialsPath(name), 0o600);
+  setupInstanceSymlinks(instDir);
 
   // Try to extract email from creds
   let email: string | undefined;
@@ -697,6 +746,7 @@ function cmdMigrate(): void {
     const destCreds = credentialsPath(name);
     copyFileSync(oldCredsPath, destCreds);
     chmodSync(destCreds, 0o600);
+    setupInstanceSymlinks(instDir);
     console.log(`  ${c.green("✓")} Migrated ${c.bold(name)}`);
 
     // Try to extract plan from creds
